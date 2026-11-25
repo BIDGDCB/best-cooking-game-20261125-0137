@@ -5,7 +5,7 @@
 // station does its job. Burners cook over time; leave food on too long and
 // it burns and must be trashed.
 import {
-  VIEW, HUD_H, BOARD_H, SHIFT_SECONDS, CHEF_SPEED, CHEF_RADIUS,
+  VIEW, HUD_H, BOARD_H, SHIFT_SECONDS, RUSH_DURATION, RUSH_TIP_MULT, CHEF_SPEED, CHEF_RADIUS,
   CHOPS_NEEDED, COOK_SECONDS, BURN_SECONDS,
   INGREDIENTS, RECIPES, recipeById, dayTuning,
 } from './config.js';
@@ -122,6 +122,10 @@ export function createGame(seed = 1) {
     orders: [],
     nextOrderIn: 2,
     orderSeq: 0,
+    // Lunch rush: at two points in the shift the orders flood in and every
+    // tip doubles for 20 seconds — the pressure that grows without new chores.
+    rushUntil: 0,
+    rushesFired: 0,
     chef: { x: 640, y: 620, tx: null, ty: null, wx: null, wy: null, target: null, facing: 1, walkPhase: 0 },
     carry: null,
     board: { item: null, chops: 0 },
@@ -160,6 +164,8 @@ export function startShift(state) {
   state.expired = 0;
   state.orders = [];
   state.nextOrderIn = 2;
+  state.rushUntil = 0;
+  state.rushesFired = 0;
   state.carry = null;
   state.board = { item: null, chops: 0 };
   state.burners = [{ item: null, progress: 0 }, { item: null, progress: 0 }];
@@ -339,7 +345,8 @@ export function interactWith(state, station) {
       return;
     }
     const tip = Math.round(order.recipe.price * 0.5 * (order.patience / order.maxPatience));
-    const mult = 1 + Math.min(state.combo, 5) * 0.1;
+    const rushing = state.elapsed < state.rushUntil;
+    const mult = (1 + Math.min(state.combo, 5) * 0.1) * (rushing ? RUSH_TIP_MULT : 1);
     const earned = Math.round((order.recipe.price + tip) * mult);
     state.coins += earned;
     state.score += earned * 10 + Math.round(order.patience);
@@ -350,7 +357,7 @@ export function interactWith(state, station) {
     state.orders = state.orders.filter((o) => o.state === 'active');
     state.carry = null;
     setFlash(state, `ORDER UP! +${earned} coins`, '#2f9e44');
-    setToast(state, `${order.recipe.name} served — ${state.combo > 1 ? `combo x${mult.toFixed(1)}!` : 'nice!'}`);
+    setToast(state, `${order.recipe.name} served — ${rushing ? 'RUSH x2! ' : ''}${state.combo > 1 ? `combo x${mult.toFixed(1)}!` : 'nice!'}`);
     sfx.serve();
     return;
   }
@@ -511,11 +518,23 @@ export function update(state, dt, input) {
     sfx.tick();
   }
 
+  // Lunch rush: when the clock passes 90s and 45s left, orders flood in
+  // and every tip doubles for 20 seconds.
+  if (state.rushesFired < 2 && state.timeLeft <= (state.rushesFired === 0 ? 90 : 45)) {
+    state.rushesFired += 1;
+    state.rushUntil = state.elapsed + RUSH_DURATION;
+    state.nextOrderIn = Math.min(state.nextOrderIn, 3);
+    setFlash(state, 'RUSH HOUR! Double tips for 20s!', '#c0392b');
+    setToast(state, 'Rush hour — orders are flooding in, tips are doubled!');
+    sfx.order();
+  }
+  const rushing = state.elapsed < state.rushUntil;
+
   // Orders.
   state.nextOrderIn -= dt;
   if (state.nextOrderIn <= 0) {
     spawnOrder(state);
-    state.nextOrderIn = dayTuning(state.day).spawnInterval;
+    state.nextOrderIn = rushing ? 6 : dayTuning(state.day).spawnInterval;
   }
   for (const order of state.orders) {
     if (order.state !== 'active') continue;

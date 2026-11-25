@@ -18,7 +18,7 @@ You are the chef of a tiny restaurant, The Golden Skillet, and the lunch rush is
 4. **Assembly counter** — add chopped and cooked food to a plate to build the dish.
 5. **Serving window** — carry the finished plate to the window. Match the ticket, earn the coins plus a patience tip.
 
-**Pressure that grows:** each day the orders arrive faster, patience shrinks and the coin target climbs. Serve dishes back-to-back to build a combo multiplier (up to ×1.5). A 3-minute shift ends with a star rating — hit the target to open the next day.
+**Pressure that grows:** each day the orders arrive faster, patience shrinks and the coin target climbs. Serve dishes back-to-back to build a combo multiplier (up to ×1.5). Twice a shift, **Rush Hour** hits: orders flood in for 20 seconds and every tip doubles. A 3-minute shift ends with a star rating — hit the target to open the next day.
 
 **Controls:** mouse (click a station and the chef walks over) or WASD / arrow keys to move and **E** to use the nearest station. **P** pauses, **M** mutes. Everything is drawn in code and all sound is synthesised with WebAudio — the game loads nothing over the network and plays offline from its own files.
 

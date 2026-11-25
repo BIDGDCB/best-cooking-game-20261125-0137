@@ -230,8 +230,9 @@ function drawHud(ctx, state) {
   ctx.fillRect(0, 0, VIEW.width, HUD_H);
   text(ctx, 'THE GOLDEN SKILLET', 20, HUD_H / 2 + 1, 24, '#f6b93b', '800');
   text(ctx, `DAY ${state.day}`, 330, HUD_H / 2 + 1, 18, CREAM, '700');
-  // Shift timer: big, and red when it is nearly over.
-  const low = state.timeLeft <= 30;
+  // Shift timer: big, and red when it is nearly over or the rush is on.
+  const rushing = state.elapsed < state.rushUntil;
+  const low = state.timeLeft <= 30 || rushing;
   const timerColor = low ? '#ff6b5e' : CREAM;
   ctx.fillStyle = low ? 'rgba(255,107,94,0.16)' : 'rgba(255,255,255,0.08)';
   rr(ctx, 420, 12, 150, 48, 10);
@@ -301,12 +302,18 @@ function drawHud(ctx, state) {
 }
 
 function drawOrderBoard(ctx, state) {
+  const rushing = state.elapsed < state.rushUntil;
   ctx.fillStyle = '#4a3423';
   ctx.fillRect(0, HUD_H, VIEW.width, BOARD_H);
-  ctx.fillStyle = '#6b4a2f';
+  ctx.fillStyle = rushing ? RED : '#6b4a2f';
   ctx.fillRect(0, HUD_H, VIEW.width, 4);
   text(ctx, 'ORDER BOARD', 20, HUD_H + 26, 15, '#e8c98f', '800');
-  text(ctx, 'serve the ticket, earn the tip — patience pays', 20, HUD_H + 52, 13, '#cbb9a3', '600');
+  if (rushing) {
+    text(ctx, 'RUSH HOUR — double tips!', 20, HUD_H + 52, 14, '#ff8a7a', '800');
+    text(ctx, `ends in ${Math.ceil(state.rushUntil - state.elapsed)}s`, 20, HUD_H + 74, 12, '#e8c98f', '700');
+  } else {
+    text(ctx, 'serve the ticket, earn the tip — patience pays', 20, HUD_H + 52, 13, '#cbb9a3', '600');
+  }
   if (state.orders.length === 0) {
     text(ctx, 'No orders yet — the lunch rush is coming…', 300, HUD_H + BOARD_H / 2, 18, '#e8c98f', '600');
     return;
@@ -642,7 +649,7 @@ function drawTitle(ctx, state) {
   lines.forEach((line, i) => {
     text(ctx, line, 640, 348 + i * 28, 17, INK, '600', 'center');
   });
-  text(ctx, 'Burnt food goes in the trash. Combos pay extra. Good luck, chef!', 640, 508, 15, '#8a7a68', '600', 'center');
+  text(ctx, 'Burnt food goes in the trash. Combos pay extra. Rush hour = double tips!', 640, 508, 15, '#8a7a68', '600', 'center');
   ctx.fillStyle = TEAL;
   rr(ctx, 490, 540, 300, 56, 14);
   ctx.fill();
