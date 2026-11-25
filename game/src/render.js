@@ -1,8 +1,8 @@
 // The Golden Skillet: every pixel is drawn here with canvas shapes —
 // the kitchen, the order board, the chef, the food and the overlays.
 // No images, no fonts fetched: the game loads nothing over the network.
-import { VIEW, HUD_H, BOARD_H, FLOOR_TOP, STATIONS, SCREEN_TITLE, SCREEN_OVER } from './kitchen.js';
-import { INGREDIENTS, RECIPES, SHIFT_SECONDS, CHOPS_NEEDED, COOK_SECONDS, BURN_SECONDS, dayTuning } from './config.js';
+import { VIEW, FLOOR_TOP, STATIONS, SCREEN_TITLE, SCREEN_OVER } from './kitchen.js';
+import { INGREDIENTS, RECIPES, HUD_H, BOARD_H, SHIFT_SECONDS, CHOPS_NEEDED, COOK_SECONDS, BURN_SECONDS, dayTuning } from './config.js';
 
 const CREAM = '#fdf6e9';
 const WOOD = '#b07a45';
@@ -170,7 +170,7 @@ function drawPlate(ctx, plate, cx, cy, scale = 1) {
 function drawCarried(ctx, carry, x, y) {
   if (!carry) return;
   ctx.save();
-  ctx.translate(x, y - 34);
+  ctx.translate(x, y - 46);
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   ctx.beginPath();
   ctx.ellipse(0, 40, 26, 8, 0, 0, Math.PI * 2);
@@ -228,8 +228,7 @@ function drawHud(ctx, state) {
   const tuning = dayTuning(state.day);
   ctx.fillStyle = '#2b2118';
   ctx.fillRect(0, 0, VIEW.width, HUD_H);
-  ctx.fillStyle = '#f6b93b';
-  text(ctx, '🍳 THE GOLDEN SKILLET', 20, HUD_H / 2 + 1, 24, '#f6b93b', '800');
+  text(ctx, 'THE GOLDEN SKILLET', 20, HUD_H / 2 + 1, 24, '#f6b93b', '800');
   text(ctx, `DAY ${state.day}`, 330, HUD_H / 2 + 1, 18, CREAM, '700');
   // Shift timer: big, and red when it is nearly over.
   const low = state.timeLeft <= 30;
@@ -237,9 +236,31 @@ function drawHud(ctx, state) {
   ctx.fillStyle = low ? 'rgba(255,107,94,0.16)' : 'rgba(255,255,255,0.08)';
   rr(ctx, 420, 12, 150, 48, 10);
   ctx.fill();
-  text(ctx, '⏱ ' + formatTime(state.timeLeft), 495, HUD_H / 2 + 1, 26, timerColor, '800', 'center');
-  // Coins + target.
-  text(ctx, `🪙 ${state.coins}`, 610, HUD_H / 2 + 1, 24, '#ffd76a', '800');
+  // Little clock icon, drawn so it never depends on an emoji font.
+  ctx.strokeStyle = timerColor;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.arc(446, HUD_H / 2, 12, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(446, HUD_H / 2);
+  ctx.lineTo(446, HUD_H / 2 - 7);
+  ctx.moveTo(446, HUD_H / 2);
+  ctx.lineTo(451, HUD_H / 2 + 3);
+  ctx.stroke();
+  text(ctx, formatTime(state.timeLeft), 508, HUD_H / 2 + 1, 26, timerColor, '800', 'center');
+  // Coins: a drawn gold coin, then the count.
+  ctx.fillStyle = '#ffd76a';
+  ctx.beginPath();
+  ctx.arc(600, HUD_H / 2, 13, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#c99a1e';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(600, HUD_H / 2, 13, 0, Math.PI * 2);
+  ctx.stroke();
+  text(ctx, '$', 600, HUD_H / 2 + 1, 15, '#8a6d1a', '800', 'center');
+  text(ctx, `${state.coins}`, 622, HUD_H / 2 + 1, 24, '#ffd76a', '800');
   const pct = Math.min(1, state.coins / tuning.targetCoins);
   ctx.fillStyle = 'rgba(255,255,255,0.15)';
   rr(ctx, 700, 26, 170, 18, 9);
@@ -247,12 +268,36 @@ function drawHud(ctx, state) {
   ctx.fillStyle = pct >= 1 ? '#7dc383' : '#f6b93b';
   rr(ctx, 700, 26, Math.max(18, 170 * pct), 18, 9);
   ctx.fill();
-  text(ctx, `target ${tuning.targetCoins}`, 785, HUD_H / 2 + 1, 14, CREAM, '700', 'center');
-  text(ctx, `SCORE ${state.score}`, 920, HUD_H / 2 + 1, 18, CREAM, '700');
+  text(ctx, `target ${tuning.targetCoins}`, 880, HUD_H / 2 + 1, 14, CREAM, '700');
+  text(ctx, `SCORE ${state.score}`, 1000, HUD_H / 2 + 1, 18, CREAM, '700');
   if (state.combo > 1) {
-    text(ctx, `🔥 COMBO x${(1 + Math.min(state.combo, 5) * 0.1).toFixed(1)}`, 1080, HUD_H / 2 + 1, 18, '#ff9f43', '800');
+    text(ctx, `COMBO x${(1 + Math.min(state.combo, 5) * 0.1).toFixed(1)}`, 1130, HUD_H / 2 + 1, 18, '#ff9f43', '800');
   }
-  text(ctx, state.muted ? '🔇 M' : '🔊 M', 1236, HUD_H / 2 + 1, 15, '#cbb9a3', '700', 'right');
+  // Speaker icon, drawn so it never depends on an emoji font.
+  ctx.fillStyle = '#cbb9a3';
+  ctx.beginPath();
+  ctx.moveTo(1242, HUD_H / 2 - 4);
+  ctx.lineTo(1248, HUD_H / 2 - 4);
+  ctx.lineTo(1254, HUD_H / 2 - 9);
+  ctx.lineTo(1254, HUD_H / 2 + 9);
+  ctx.lineTo(1248, HUD_H / 2 + 4);
+  ctx.lineTo(1242, HUD_H / 2 + 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = '#cbb9a3';
+  ctx.lineWidth = 2;
+  if (state.muted) {
+    ctx.beginPath();
+    ctx.moveTo(1258, HUD_H / 2 - 5);
+    ctx.lineTo(1266, HUD_H / 2 + 5);
+    ctx.moveTo(1266, HUD_H / 2 - 5);
+    ctx.lineTo(1258, HUD_H / 2 + 5);
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    ctx.arc(1258, HUD_H / 2, 5, -0.9, 0.9);
+    ctx.stroke();
+  }
 }
 
 function drawOrderBoard(ctx, state) {
@@ -298,9 +343,9 @@ function drawOrderBoard(ctx, state) {
 
 function drawPantry(ctx, state) {
   ctx.fillStyle = '#7a4a26';
-  rr(ctx, 8, FLOOR_TOP + 8, 200, 452, 12);
+  rr(ctx, 8, FLOOR_TOP + 8, 200, 470, 12);
   ctx.fill();
-  text(ctx, 'PANTRY', 108, FLOOR_TOP + 30, 15, '#f6d9a0', '800', 'center');
+  text(ctx, 'PANTRY', 108, FLOOR_TOP + 28, 15, '#f6d9a0', '800', 'center');
   for (const station of STATIONS.pantry) {
     const def = INGREDIENTS[station.ingredient];
     ctx.fillStyle = '#fdf6e9';
@@ -312,7 +357,7 @@ function drawPantry(ctx, state) {
     ctx.stroke();
     drawIngredient(ctx, station.ingredient, 'raw', station.x + station.w / 2, station.y + 34, 44);
     text(ctx, def.name.toUpperCase(), station.x + station.w / 2, station.y + 74, 12, INK, '800', 'center');
-    text(ctx, def.prep === 'none' ? 'ready' : def.prep === 'chop' ? 'chop ✂' : 'cook 🍳', station.x + station.w / 2, station.y + 88, 10, '#8a7a68', '600', 'center');
+    text(ctx, def.prep === 'none' ? 'ready' : def.prep === 'chop' ? 'chop' : 'cook', station.x + station.w / 2, station.y + 88, 10, '#8a7a68', '600', 'center');
   }
 }
 
@@ -324,7 +369,7 @@ function drawBoard(ctx, state) {
   ctx.fillStyle = WOOD;
   rr(ctx, b.x, b.y, b.w, b.h, 10);
   ctx.fill();
-  text(ctx, '✂ CHOPPING BOARD', b.x + 14, b.y + 18, 13, '#fff3d6', '800');
+  text(ctx, 'CHOPPING BOARD', b.x + 14, b.y + 18, 13, '#fff3d6', '800');
   if (state.board.item) {
     drawIngredient(ctx, state.board.item.kind, state.board.item.prep, b.x + 90, b.y + 52, 52);
     for (let i = 0; i < CHOPS_NEEDED; i += 1) {
@@ -399,7 +444,7 @@ function drawCounter(ctx, state) {
   ctx.fillStyle = WOOD;
   rr(ctx, c.x, c.y, c.w, c.h, 10);
   ctx.fill();
-  text(ctx, '🍽 ASSEMBLY COUNTER', c.x + 14, c.y + 18, 13, '#fff3d6', '800');
+  text(ctx, 'ASSEMBLY COUNTER', c.x + 14, c.y + 18, 13, '#fff3d6', '800');
   if (state.plates.length === 0) {
     text(ctx, 'plates appear here — add chopped & cooked food to build a dish', c.x + 14, c.y + 58, 13, '#ffe9c4', '600');
   }
@@ -431,7 +476,7 @@ function drawServe(ctx, state) {
   ctx.fillStyle = '#f6b93b';
   rr(ctx, s.x + 14, s.y + 12, 120, 26, 8);
   ctx.fill();
-  text(ctx, '🔔 SERVE', s.x + 74, s.y + 25, 15, '#2b2118', '800', 'center');
+  text(ctx, 'SERVE', s.x + 74, s.y + 25, 15, '#2b2118', '800', 'center');
   text(ctx, 'bring the finished plate here', s.x + 14, s.y + 58, 13, '#e8c98f', '600');
   // A little queue of waiting customers, drawn as heads.
   const heads = ['#f2c79b', '#8a5a3b', '#f6d7a8'];
@@ -458,8 +503,20 @@ function drawTrash(ctx) {
   ctx.fillStyle = '#5d6b76';
   rr(ctx, t.x + 8, t.y + 8, t.w - 16, t.h - 16, 8);
   ctx.fill();
-  text(ctx, '🗑', t.x + t.w / 2, t.y + 34, 26, '#ffffff', '700', 'center');
-  text(ctx, 'TRASH', t.x + t.w / 2, t.y + 72, 12, '#ffffff', '800', 'center');
+  // A drawn trash can: body, rim and lid handle.
+  const cx = t.x + t.w / 2;
+  ctx.fillStyle = '#e8eef2';
+  ctx.beginPath();
+  ctx.moveTo(cx - 16, t.y + 30);
+  ctx.lineTo(cx + 16, t.y + 30);
+  ctx.lineTo(cx + 12, t.y + 62);
+  ctx.lineTo(cx - 12, t.y + 62);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#c3ced6';
+  ctx.fillRect(cx - 19, t.y + 26, 38, 5);
+  ctx.fillRect(cx - 4, t.y + 20, 8, 6);
+  text(ctx, 'TRASH', cx, t.y + 80, 12, '#ffffff', '800', 'center');
 }
 
 function drawDecor(ctx) {
@@ -535,6 +592,33 @@ function drawFloor(ctx) {
   }
 }
 
+function drawSkillet(ctx, cx, cy, scale) {
+  // The game's mark: a frying pan with a sunny egg, drawn in code.
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#3c3f45';
+  ctx.beginPath();
+  ctx.arc(0, 0, 34, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#22242a';
+  ctx.beginPath();
+  ctx.arc(0, 0, 28, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#3c3f45';
+  rr(ctx, 30, -6, 30, 12, 6);
+  ctx.fill();
+  ctx.fillStyle = '#ffffff';
+  ctx.beginPath();
+  ctx.ellipse(-2, 2, 18, 13, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f6b93b';
+  ctx.beginPath();
+  ctx.arc(0, 0, 8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
 function drawTitle(ctx, state) {
   ctx.fillStyle = 'rgba(43,33,24,0.72)';
   ctx.fillRect(0, 0, VIEW.width, VIEW.height);
@@ -545,7 +629,7 @@ function drawTitle(ctx, state) {
   ctx.lineWidth = 4;
   rr(ctx, 290, 130, 700, 500, 20);
   ctx.stroke();
-  text(ctx, '🍳', 640, 200, 64, INK, '700', 'center');
+  drawSkillet(ctx, 640, 196, 1.15);
   text(ctx, 'THE GOLDEN SKILLET', 640, 262, 44, TEAL_DARK, '800', 'center');
   text(ctx, 'a timed cooking game', 640, 300, 20, '#8a7a68', '600', 'center');
   const lines = [
@@ -577,7 +661,7 @@ function drawOver(ctx, state) {
   ctx.lineWidth = 4;
   rr(ctx, 340, 150, 600, 470, 20);
   ctx.stroke();
-  text(ctx, over.won ? '🎉 SHIFT COMPLETE!' : '😮 SHIFT OVER', 640, 210, 36, over.won ? TEAL_DARK : RED, '800', 'center');
+  text(ctx, over.won ? 'SHIFT COMPLETE!' : 'SHIFT OVER', 640, 210, 36, over.won ? TEAL_DARK : RED, '800', 'center');
   const stars = '★'.repeat(over.stars) + '☆'.repeat(3 - over.stars);
   text(ctx, stars, 640, 268, 44, '#f6b93b', '800', 'center');
   text(ctx, `Day ${state.day} — you earned ${state.coins} coins (target ${over.target})`, 640, 322, 19, INK, '700', 'center');
@@ -592,7 +676,7 @@ function drawOver(ctx, state) {
     ctx.fillStyle = RED;
     rr(ctx, 490, 430, 300, 56, 14);
     ctx.fill();
-    text(ctx, '↻  TRY AGAIN', 640, 458, 22, '#ffffff', '800', 'center');
+    text(ctx, 'TRY AGAIN', 640, 458, 22, '#ffffff', '800', 'center');
   }
   text(ctx, 'Enter / click to continue', 640, 520, 14, '#8a7a68', '600', 'center');
   text(ctx, 'Tip: chop while the patty cooks — never stand still in a rush.', 640, 580, 14, '#8a7a68', '600', 'center');
@@ -619,6 +703,6 @@ export function render(ctx, state) {
   if (state.paused && state.screen === 'play') {
     ctx.fillStyle = 'rgba(43,33,24,0.6)';
     ctx.fillRect(0, 0, VIEW.width, VIEW.height);
-    text(ctx, '⏸ PAUSED — press P to resume', 640, 400, 32, CREAM, '800', 'center');
+    text(ctx, 'PAUSED — press P to resume', 640, 400, 32, CREAM, '800', 'center');
   }
 }

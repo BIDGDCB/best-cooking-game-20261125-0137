@@ -26,9 +26,9 @@ export const STATIONS = {
     const row = Math.floor(i / 2);
     return {
       id: `pantry-${kind}`, kind: 'pantry', ingredient: kind,
-      x: 16 + col * 96, y: FLOOR_TOP + 24 + row * 108, w: 88, h: 96,
+      x: 16 + col * 96, y: FLOOR_TOP + 44 + row * 108, w: 88, h: 96,
       // Stand to the right of the pantry block, clear of every bin's collision zone.
-      approach: { x: 232, y: FLOOR_TOP + 24 + row * 108 + 48 },
+      approach: { x: 232, y: FLOOR_TOP + 44 + row * 108 + 48 },
     };
   }),
   board: {
